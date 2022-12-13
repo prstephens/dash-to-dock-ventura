@@ -173,7 +173,7 @@ $dock_style_modes: [null, shrink, extended, extended-shrink];
             .dash-separator {
                 background-color: $borders_color;
                 @if is_horizontal($side) {
-                    margin: 0 $margin;
+                    margin: 0px 3px 0px 7px;
                     width: 1px;
                     height: 0;
                 } @else {
