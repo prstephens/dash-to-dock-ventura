@@ -1,6 +1,6 @@
 // From https://gitlab.gnome.org/GNOME/gnome-shell/-/blob/43.0/data/theme/gnome-shell-sass/_common.scss#L28
-$base_padding: 0px;
-$base_margin: 0px;
+$base_padding: 6px;
+$base_margin: 4px;
 
 $base_border_radius: 8px;
 $modal_radius: $base_border_radius * 2;
@@ -20,7 +20,7 @@ $dash_padding: $base_padding*2; // 12px
 $dash_border_radius: $modal_radius + $dash_padding;
 
 // Dash to dock specifics
-$dash_padding: $base_padding + 0px; // 10px
+$dash_padding: $base_padding + 4px; // 10px
 $dash_border_radius: $modal_radius * 1.5;
 
 $dock_spacing: round($base_padding / 4);
@@ -163,7 +163,7 @@ $dock_style_modes: [null, shrink, extended, extended-shrink];
             padding: 0px;
 
             .dash-background {
-                margin: 0px;
+                margin: 0;
                 margin-#{$side}: $side_margin;
                 padding: 0;
                 border-radius: $border_radius;
@@ -173,7 +173,7 @@ $dock_style_modes: [null, shrink, extended, extended-shrink];
             .dash-separator {
                 background-color: $borders_color;
                 @if is_horizontal($side) {
-                    margin: 0 4px;
+                    margin: 0 $margin;
                     width: 1px;
                     height: 0;
                 } @else {
