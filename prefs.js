@@ -681,6 +681,10 @@ var Settings = GObject.registerClass({
             this._builder.get_object('show_trash_switch'),
             'active',
             Gio.SettingsBindFlags.DEFAULT);
+        this._settings.bind('show-downloads',
+            this._builder.get_object('show_downloads_switch'),
+            'active',
+            Gio.SettingsBindFlags.DEFAULT);
         this._settings.bind('show-mounts',
             this._builder.get_object('show_mounts_switch'),
             'active',

@@ -260,6 +260,11 @@
       <summary>Show trash can</summary>
       <description>Show or hide the trash can icon in the dash</description>
     </key>
+    <key type="b" name="show-downloads">
+      <default>true</default>
+      <summary>Show Downloads folder</summary>
+      <description>Show or hide the Downloads folder in the dash</description>
+    </key>
     <key type="b" name="show-mounts">
       <default>true</default>
       <summary>Show mounted volumes and devices</summary>

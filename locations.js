@@ -21,9 +21,11 @@ const Utils = Me.imports.utils;
 
 const FALLBACK_REMOVABLE_MEDIA_ICON = 'drive-removable-media';
 const FALLBACK_TRASH_ICON = 'user-trash';
+const FALLBACK_DOWNLOADS_ICON = 'folder-download';
 const FILE_MANAGER_DESKTOP_APP_ID = 'org.gnome.Nautilus.desktop';
 const ATTRIBUTE_METADATA_CUSTOM_ICON = 'metadata::custom-icon';
 const TRASH_URI = 'trash://';
+const DOWNLOADS_URI = '/home/$USER/Downloads';
 const UPDATE_TRASH_DELAY = 1000;
 
 const NautilusFileOperations2Interface = '<node>\
@@ -711,6 +713,47 @@ class TrashAppInfo extends LocationAppInfo {
     }
 });
 
+const DownloadsAppInfo = GObject.registerClass({
+    Implements: [Gio.AppInfo],
+    Properties: {
+        'empty': GObject.ParamSpec.boolean(
+            'empty', 'empty', 'empty',
+            GObject.ParamFlags.READWRITE,
+            true),
+    },
+},
+class DownloadsAppInfo extends LocationAppInfo {
+    static initPromises(file) {
+        if (DownloadsAppInfo._promisified)
+            return;
+
+        const downloadsProto = file.constructor.prototype;
+        Gio._promisify(Gio.FileEnumerator.prototype, 'close_async', 'close_finish');
+        Gio._promisify(Gio.FileEnumerator.prototype, 'next_files_async', 'next_files_finish');
+        Gio._promisify(downloadsProto, 'enumerate_children_async', 'enumerate_children_finish');
+        Gio._promisify(downloadsProto, 'query_info_async', 'query_info_finish');
+        DownloadsAppInfo._promisified = true;
+    }
+
+    _init(cancellable = null) {
+        let download_dir = GLib.build_filenamev([GLib.get_home_dir(), 'Downloads'])
+        super._init({
+            location: Gio.file_new_for_path(download_dir),
+            name: __('Downloads'),
+            icon: Gio.ThemedIcon.new(FALLBACK_DOWNLOADS_ICON),
+            cancellable,
+        });
+        DownloadsAppInfo.initPromises(this.location);
+
+        this.connect('notify::empty', () => this._updateLocationIcon());
+        this.notify('empty');
+    }
+
+    destroy() {
+        super.destroy();
+    }
+});
+
 function wrapWindowsBackedApp(shellApp) {
     if (shellApp._dtdData)
         throw new Error('%s has been already wrapped'.format(shellApp));
@@ -934,6 +977,12 @@ function makeLocationApp(params) {
 
     shellApp._setDtdData({
         location: () => shellApp.appInfo.location,
+        isDownloads: shellApp.appInfo instanceof DownloadsAppInfo,
+    }, { getter: true, enumerable: true });
+
+
+    shellApp._setDtdData({
+        location: () => shellApp.appInfo.location,
         isTrash: shellApp.appInfo instanceof TrashAppInfo,
     }, { getter: true, enumerable: true });
 
@@ -1041,7 +1090,7 @@ function wrapFileManagerApp() {
     const originalGetWindows = fileManagerApp.get_windows;
     wrapWindowsBackedApp(fileManagerApp);
 
-    const { removables, trash } = Docking.DockManager.getDefault();
+    const { removables, downloads, trash} = Docking.DockManager.getDefault();
     fileManagerApp._signalConnections.addWithLabel(Labels.WINDOWS_CHANGED,
         fileManagerApp, 'windows-changed', () => {
             fileManagerApp.stop_emission_by_name('windows-changed');
@@ -1065,6 +1114,11 @@ function wrapFileManagerApp() {
         fileManagerApp._signalConnections.add(removables, 'changed', () =>
             fileManagerApp._updateWindows());
         fileManagerApp._signalConnections.add(removables, 'windows-changed', () =>
+            fileManagerApp._updateWindows());
+    }
+
+    if (downloads?.getApp()) {
+        fileManagerApp._signalConnections.add(downloads.getApp(), 'windows-changed', () =>
             fileManagerApp._updateWindows());
     }
 
@@ -1120,6 +1174,27 @@ var Trash = class DashToDock_Trash {
     getApp() {
         this._ensureApp();
         return this._trashApp;
+    }
+}
+
+var Downloads = class DashToDock_Downloads {
+    destroy() {
+        this._downloadsApp?.destroy();
+    }
+
+    _ensureApp() {
+        if (this._downloadsApp)
+            return;
+
+        this._downloadsApp = makeLocationApp({
+            appInfo: new DownloadsAppInfo(new Gio.Cancellable()),
+            fallbackIconName: FALLBACK_DOWNLOADS_ICON,
+        });
+    }
+
+    getApp() {
+        this._ensureApp();
+        return this._downloadsApp;
     }
 }
 
@@ -1285,6 +1360,9 @@ function getApps() {
 
     if (dockManager.trash)
         locationApps.push(dockManager.trash.getApp());
+    
+    if (dockManager.downloads)
+        locationApps.push(dockManager.downloads.getApp());
 
     return locationApps;
 }

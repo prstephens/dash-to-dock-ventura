@@ -532,6 +532,11 @@ var DockedDash = GObject.registerClass({
             Utils.SignalsHandlerFlags.CONNECT_AFTER,
         ], [
             settings,
+            'changed::show-downloads',
+            () => { this.dash.resetAppIcons(); },
+            Utils.SignalsHandlerFlags.CONNECT_AFTER,
+        ], [
+            settings,
             'changed::show-mounts',
             () => { this.dash.resetAppIcons(); },
             Utils.SignalsHandlerFlags.CONNECT_AFTER
@@ -1695,6 +1700,10 @@ var DockManager = class DashToDock_DockManager {
         return this._trash;
     }
 
+    get downloads(){
+        return this._downloads;
+    }
+
     get desktopIconsUsableArea() {
         return this._desktopIconsUsableArea;
     }
@@ -1712,9 +1721,9 @@ var DockManager = class DashToDock_DockManager {
     }
 
     _ensureLocations() {
-        const { showMounts, showTrash } = this.settings;
+        const { showMounts, showTrash, showDownloads } = this.settings;
 
-        if (showTrash || showMounts) {
+        if (showTrash || showMounts || showDownloads) {
             if (!this._fm1Client)
                 this._fm1Client = new FileManager1API.FileManager1Client();
         } else if (this._fm1Client) {
@@ -1736,11 +1745,18 @@ var DockManager = class DashToDock_DockManager {
             this._trash = null;
         }
 
+        if (showDownloads && !this._downloads) {
+            this._downloads = new Locations.Downloads();
+        } else if (!showDownloads && this._downloads) {
+            this._downloads.destroy();
+            this._downloads = null;
+        }
+
         Locations.unWrapFileManagerApp();
         [this._methodInjections, this._propertyInjections].forEach(
             injections => injections.removeWithLabel(Labels.LOCATIONS));
 
-        if (showMounts || showTrash) {
+        if (showMounts || showTrash || showDownloads) {
             if (this.settings.isolateLocations) {
                 const fileManagerApp = Locations.wrapFileManagerApp();
 
@@ -1884,6 +1900,10 @@ var DockManager = class DashToDock_DockManager {
             'changed::show-trash',
             () => this._ensureLocations()
         ], [
+            this._settings,
+            'changed::show-downloads',
+            () => this._ensureLocations()
+        ],[
             this._settings,
             'changed::show-mounts',
             () => this._ensureLocations()
@@ -2424,6 +2444,8 @@ var DockManager = class DashToDock_DockManager {
         this._appSpread.destroy();
         this._trash?.destroy();
         this._trash = null;
+        this._downloads?.destroy();
+        this._downloads = null;
         Locations.unWrapFileManagerApp();
         this._removables?.destroy();
         this._removables = null;
