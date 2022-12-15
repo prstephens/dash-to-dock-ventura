@@ -721,6 +721,7 @@ const DownloadsAppInfo = GObject.registerClass({
             true),
     },
 },
+
 class DownloadsAppInfo extends LocationAppInfo {
     static initPromises(file) {
         if (DownloadsAppInfo._promisified)
