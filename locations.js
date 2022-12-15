@@ -25,7 +25,6 @@ const FALLBACK_DOWNLOADS_ICON = 'folder-download';
 const FILE_MANAGER_DESKTOP_APP_ID = 'org.gnome.Nautilus.desktop';
 const ATTRIBUTE_METADATA_CUSTOM_ICON = 'metadata::custom-icon';
 const TRASH_URI = 'trash://';
-const DOWNLOADS_URI = '/home/$USER/Downloads';
 const UPDATE_TRASH_DELAY = 1000;
 
 const NautilusFileOperations2Interface = '<node>\
