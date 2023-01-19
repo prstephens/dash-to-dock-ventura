@@ -165,16 +165,17 @@ $dock_style_modes: [null, shrink, extended, extended-shrink];
             .dash-background {
                 margin: 0;
                 margin-#{$side}: $side_margin;
+                
                 padding: 0;
                 border-radius: $border_radius;
                 spacing: $base_padding;
             }
 
             .dash-separator {
-                background-color: if($variant== 'light', rgba(50, 50, 50, 0.2), rgba(250, 250, 250, 0.2));
+                background-color: if($variant== 'light', rgba(50, 50, 50, 0.9), rgba(250, 250, 250, 0.9));
                 @if is_horizontal($side) {
                     margin: 0px 3px 0px 7px;
-                    width: 2px;
+                    width: 1px;
                     height: 0;
                 } @else {
                     width: 0;
@@ -213,14 +214,14 @@ $dock_style_modes: [null, shrink, extended, extended-shrink];
                         background-image: none;
                     }
                     &.focused .overview-icon {
-                        background-color: rgba(238, 238, 236, 0.2);
+                        background-color: rgba(238, 236, 236, 0.2);
                     }
 
                     .app-well-app-running-dot {
                         margin-bottom: 2px;
                     }
                 }
-
+                
                 > StButton {
                     transition-duration: 250;
                     background-size: contain;
